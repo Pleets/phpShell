@@ -23,7 +23,7 @@ Class Shell implements IShellCommands
 
 	public function __construct($home = null, $path = null, $files = null)
 	{
-      # Get initial properties
+		# Get initial properties
 		$this->home = is_null($home) ? $this->pwd()->path : $home;
 		$this->path = is_null($path) ? $this->pwd()->path : $path;
 		$this->files = is_null($files) ? $this->ls()->files : $files;
@@ -127,30 +127,23 @@ Class Shell implements IShellCommands
 		{
 			if ($recursive) 
 			{
-				$_SESSION["BUFFER"]["EXO"]["ls"] = array();
-				$_SESSION["BUFFER"]["EXO"]["ls"][0] = array();
-				$_SESSION["BUFFER"]["EXO"]["ls"][1] = array();
+				$dirs = $files = array();
 
-				$that = $this;
-				$this->getContents($path, function($this) use ($that) {
-					$_SESSION["BUFFER"]["EXO"]["ls"][0][] = $that->get('buffer');
-				}, function($this) use ($that) {
-					$_SESSION["BUFFER"]["EXO"]["ls"][1][] = $that->get('buffer');
-				}, function($this) use ($that) {
-
-					$files = $_SESSION["BUFFER"]["EXO"]["ls"][0];
-					$dirs = $_SESSION["BUFFER"]["EXO"]["ls"][1];
-
-					$this->files = null;
-
-					foreach ($dirs as $item) {
-						$that->files[] = $item;
-					}
-
-					foreach ($files as $item) {
-						$that->files[] = $item;
-					}
+				$this->getContents($path, function($event) use (&$files) {
+					$files[] = $event->get('buffer');
+				}, function($event) use (&$dirs) {
+					$dirs[] = $event->get('buffer');
 				});
+
+				$this->files = null;
+
+				foreach ($dirs as $item) {
+					$this->files[] = $item;
+				}
+
+				foreach ($files as $item) {
+					$this->files[] = $item;
+				}
 			}
 			else {
 				while (false !== ($item = $pathIns->read())) {
