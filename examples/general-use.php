@@ -1,10 +1,11 @@
 <?php
 
 # include Shell class
-include('../FileSystem.php');
+include('../FileSystem/IShellCommands.php');
+include('../FileSystem/FileSystem.php');
 
 # New shell
-$filesystem = new \FileSystem\Shell();
+$filesystem = new \Pleets\FileSystem\Shell();
 
 # Create testing directory and change directory to it
 $filesystem ->mkdir('testing')

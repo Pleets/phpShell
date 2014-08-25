@@ -7,12 +7,10 @@
  * Free to use under the MIT license.
  * http://www.opensource.org/licenses/mit-license.php
  *
- * Date: 2014-07-29
+ * Date: 2014-08-25
  */
 
-namespace FileSystem;
-
-include('IShellCommands.php');
+namespace Pleets\FileSystem;
 
 Class Shell implements IShellCommands
 {

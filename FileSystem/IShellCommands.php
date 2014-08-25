@@ -9,7 +9,7 @@
  * http://www.opensource.org/licenses/mit-license.php
  */
 
-namespace FileSystem;
+namespace Pleets\FileSystem;
 
 interface IShellCommands
 {
