@@ -6,14 +6,15 @@ PHPFileSystem is an easy script for manage the real filesystem in the server.
 Installation
 ------------
 
-Simply add the file `FileSystem.php` in your project.
+Simply add the files `IShellCommands.php` and `FileSystem.php` in your project.
 ```php
-include('FileSystem.php');
+include('FileSystem\IShellCommands.php');
+include('FileSystem\FileSystem.php');
 ```
 
-And run this as 
+And run this as
 ```php
-$filesystem = new \FileSystem\Shell();
+$filesystem = new \Pleets\FileSystem\Shell();
 ```
 
 Creating directories and files
