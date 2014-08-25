@@ -12,7 +12,7 @@
 
 namespace Pleets\FileSystem;
 
-Class Shell implements IShellCommands
+class Shell implements IShellCommands
 {
 	private $home = null;				# Home path. Equivalent to ~
 	private $path = null;				# Current path

@@ -2,7 +2,7 @@
 
 # include Shell class
 include('../FileSystem/IShellCommands.php');
-include('../FileSystem/FileSystem.php');
+include('../FileSystem/Shell.php');
 
 # New shell
 $filesystem = new \Pleets\FileSystem\Shell();

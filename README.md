@@ -9,7 +9,7 @@ Installation
 Simply add the files `IShellCommands.php` and `FileSystem.php` in your project.
 ```php
 include('FileSystem\IShellCommands.php');
-include('FileSystem\FileSystem.php');
+include('FileSystem\Shell.php');
 ```
 
 And run this as
