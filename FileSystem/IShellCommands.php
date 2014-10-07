@@ -14,8 +14,8 @@ namespace Pleets\FileSystem;
 interface IShellCommands
 {
    public function pwd();
-   public function ls();
-   public function cd();
+   public function ls($path);
+   public function cd($path);
    public function touch($file);
    public function rm($file);
    public function cp($source, $dest);
