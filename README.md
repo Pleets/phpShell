@@ -27,7 +27,7 @@ $filesystem ->mkdir('myDir');
 
 To create files
 ```php
-$filesystem ->mkdir('myFile.ext');
+$filesystem ->touch('myFile.ext');
 ```
 
 Deleting directories and files
@@ -53,7 +53,7 @@ $filesystem ->mv('myDir', 'myPath');
 
 To move files
 ```php
-$filesystem ->rm('myFile.ext', 'myPath');
+$filesystem ->mv('myFile.ext', 'myPath');
 ```
 
 This command is same in Linux, the `mv` command also is useful to rename files an directories.
@@ -63,12 +63,12 @@ Listing files and directories
 
 To list files and dirs
 ```php
-$filesystem ->ls()->get('files');
+$filesystem ->ls();
 ```
 
 To list files and dirs recursively
 ```php
-$filesystem ->ls('path', true)->get('files');
+$filesystem ->ls('path', true);
 ```
 
 Changing the path

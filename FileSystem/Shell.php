@@ -7,7 +7,7 @@
  * Free to use under the MIT license.
  * http://www.opensource.org/licenses/mit-license.php
  *
- * Date: 2014-08-25
+ * Date: 2014-10-06
  */
 
 namespace Pleets\FileSystem;
@@ -15,67 +15,60 @@ namespace Pleets\FileSystem;
 class Shell implements IShellCommands
 {
 	private $home = null;				# Home path. Equivalent to ~
-	private $path = null;				# Current path
-	private $files = null;				# Last files
 	private $buffer = null;				# Buffer
 
-	public function __construct($home = null, $path = null, $files = null)
+	public function __construct($home = null)
 	{
-		# Get initial properties
-		$this->home = is_null($home) ? $this->pwd()->path : $home;
-		$this->path = is_null($path) ? $this->pwd()->path : $path;
-		$this->files = is_null($files) ? $this->ls()->files : $files;
-
-		# Global buffer
-		$_SESSION["BUFFER"]["EXO"] = array();
+		$this->home = (is_null($home) || empty($home)) ? $this->pwd() : $home;
 	}
 
-	public function get($value)
+	public function getHome()
 	{
-		switch ($value) {
-			case 'home':
-				return $this->home;
-				break;
-			case 'path':
-				return $this->path;
-				break;
-			case 'files':
-				return $this->files;
-				break;
-			case 'buffer':
-				return $this->buffer;
-				break;			
-			default:
-				return false;
-				break;
-		}
+		return $this->home;
 	}
 
+	public function getBuffer()
+	{
+		return $this->buffer;
+	}
+
+	/*
+	 *	Recursive function to list files and directories
+	 */
 	public function getContents($handler, $fileCallback, $dirCallback, $callback = null)
 	{
 		$contents = array();
 
-		if (is_dir($handler)) 
+		if (is_dir($handler))
 		{
-			$this->ls($handler);
-			foreach ($this->files as $item) 
+			$filesForHandler = $this->ls($handler);
+
+			foreach ($filesForHandler as $item) 
 			{
 				if ($item != '.' && $item != '..')
 					$contents[] = $item;
 			}
-			if (count($contents) > 0) 
+
+			$allContents = $contents;
+
+			if (count($contents) > 0)
 			{
 				foreach ($contents as $i) 
 				{
 					if (is_file($handler.'/'.$i)) 
 					{
+						$allContents[] = $handler.'/'.$i;
+
 						$this->buffer = $handler.'/'.$i;
 						call_user_func($fileCallback, $this);
 					}
 					elseif (is_dir($handler.'/'.$i)) 
 					{
+						$allContents[] = $handler.'/'.$i;
+
 						$this->buffer = $handler.'/'.$i;
-						$this->getContents($handler.'/'.$i,$fileCallback,$dirCallback);
+						$this->getContents($handler.'/'.$i, $fileCallback, $dirCallback);
+
 						$directory = scandir($handler);
 
 						if (!count($directory) < 3)
@@ -83,108 +76,101 @@ class Shell implements IShellCommands
 
 						call_user_func($dirCallback, $this);
 					}
-					else
-						continue;
 				}
 			}
-
 		}
+		else
+			throw new \Exception("The directory '$handler' does not exists");
 
 		if (!is_null($callback))
 			call_user_func($callback, $this);
+
+		return $allContents;
 	}
 
 	public function pwd()
 	{
-		if (getcwd()) {
+		if (getcwd())
 			$this->buffer = getcwd();
-			$this->path = getcwd();
-		}
 		else
 			return false;
-		return $this;
+		return $this->buffer;
 	}
 
 	public function ls($path = null, $recursive = false)
 	{
-		$this->files = array();
-		if (is_dir($path))
-			$pathIns = dir($path);
-		elseif (is_dir($this->path))
-			$pathIns = dir($this->path);
-		elseif (is_dir($this->buffer))
-			$pathIns = dir($this->buffer);
-		else
-			$pathIns = dir($this->home);
+		$filesToReturn = array();
 
-		if (is_file($path)) {
-			$this->files = $path;
-			$this->buffer = $path;
-		}
+		$path = (is_null($path) || empty($path)) ? '.' : $path;
+
+		if (is_file($path))
+			$filesToReturn = array($path);
 		elseif (is_dir($path))
 		{
-			if ($recursive) 
+			$pathIns = dir($path);
+
+			if ($recursive)
 			{
+				# Declare variables
 				$dirs = $files = array();
 
 				$this->getContents($path, function($event) use (&$files) {
-					$files[] = $event->get('buffer');
+					$files[] = $event->getBuffer();
 				}, function($event) use (&$dirs) {
-					$dirs[] = $event->get('buffer');
+					$dirs[] = $event->getBuffer();
 				});
 
-				$this->files = null;
-
 				foreach ($dirs as $item) {
-					$this->files[] = $item;
+					$filesToReturn[] = $item;
 				}
 
 				foreach ($files as $item) {
-					$this->files[] = $item;
+					$filesToReturn[] = $item;
 				}
 			}
 			else {
 				while (false !== ($item = $pathIns->read())) {
-					$files[] = $item;
+					$filesToReturn[] = $item;
 				}
 				$pathIns->close();
 			}
 		}
 		else {
-			$buffer = array(); $search = $path; $contents = $this->ls($this->get('path'))->get('files');
-			foreach ($contents as $item) {
-				if (!empty($search))
-					if (!strlen(stristr($item,$search))>0)
+
+			$pathIns = dir('.');
+			$contents = $this->ls();
+
+			foreach ($contents as $item) 
+			{
+				if (!empty($path))
+					if (!strlen(stristr($item, $path)) > 0)
 						continue;
 				if (strstr($item,'~') === false && $item != '.' && $item != '..')
-					$buffer[] = $item;
+					$filesToReturn[] = $item;
 			}
-			$files = $buffer;
 		}
-		if (!(count($this->files)))
-			$this->files = $files;
-		return $this;
+		
+		return $filesToReturn;
 	}
 
 	public function cd($path = null)
 	{
-		$moveTo = null;
-		if (is_null($path))
-			$moveTo = $this->home;
-		elseif (is_dir($path))
-			$moveTo = $path;
-		else return false;
+		$moveTo = (is_null($path) || empty($path)) ? $this->home : $path;
 
-		if (!is_null($moveTo) && chdir($moveTo))
-			$this->pwd();
-		else return false;
+		if (is_dir($path))
+		{
+			if (!chdir($moveTo))
+				return false;
+		}
+
 		return $this;
 	}
 
 	public function touch($file)
 	{
-		if (!file_exists($this->path."/".$file)) {
-			if (!$openFile = fopen($this->path.'/'.$file, 'w+'))
+		if (!file_exists($file)) 
+		{
+			if (!$openFile = fopen($file, 'w+'))
 				return false;
 			fwrite($openFile, "");
 			fclose($openFile);
@@ -199,27 +185,21 @@ class Shell implements IShellCommands
 		$recursive = is_null($recursive) ? false : $recursive;
 
 		if (is_null($file))
-			$file = $this->buffer;
-		# Detect absolute path
-		elseif (strpos($file, '/') === 0)
-			$file = $file;
-		# Else detect relative path
-		elseif (!is_dir($file))
-			$file = $this->path.'/'.$file;
+			throw new \Exception("Missing parameter for rm!");
 
 		if (file_exists($file) && !$recursive)
 			unlink($file);
-		elseif (is_dir($file) && $recursive) {
-
-			$_SESSION["BUFFER"]["EXO"]["rm"] = $file;
+		elseif (is_dir($file) && $recursive) 
+		{
 			$that = $this;
-			$this->getContents($file,function() use ($that) {
-					unlink($that->get('buffer'));
-				},function() use ($that) {
-					rmdir($that->get('buffer'));
-				},function() {
-					@rmdir($_SESSION["BUFFER"]["EXO"]["rm"]);
-				});
+
+			$this->getContents($file, function() use ($that) {
+				unlink($that->getBuffer());
+			}, function() use ($that) {
+				rmdir($that->getBuffer());
+			}, function() use ($file) {
+				@rmdir($file);
+			});
 		}
 		return $this;
 	}
@@ -227,35 +207,38 @@ class Shell implements IShellCommands
 	public function cp($file = null, $dest, $recursive = null)
 	{
 		$recursive = (is_null($recursive)) ? false : $recursive;
-		$source = is_null($file) ? $this->buffer : $file;
-		if (is_dir($dest)) {
+
+		if (empty($file) || empty($dest))
+			throw new \Exception("Missing parameters!");
+
+		if (is_dir($dest)) 
+		{
 			if (!$recursive)
-				copy($source, $dest.'/'.$source);
+				copy($file, $dest.'/'.$file);
 			else {
 
-				$_SESSION["BUFFER"]["EXO"]["cp"] = array();
-				$_SESSION["BUFFER"]["EXO"]["cp"][0] = array();
-				$_SESSION["BUFFER"]["EXO"]["cp"][1] = array();
+				$files = array();
+				$files[0] = array();
+				$files[1] = array();
 
 				$_SESSION["BUFFER"]["EXO"]["cp"][2] = $dest;
-				
+
 				$that = $this;
 
-				$this->getContents($source,function() use($that) {
-					$_SESSION["BUFFER"]["EXO"]["cp"][0][] = $that->get('buffer');
-				},function() use($that) {
-					$_SESSION["BUFFER"]["EXO"]["cp"][1][] = $that->get('buffer');
-				},function() {
-					$files = $_SESSION["BUFFER"]["EXO"]["cp"][0];
-					$dirs = $_SESSION["BUFFER"]["EXO"]["cp"][1];
-					$dest = $_SESSION["BUFFER"]["EXO"]["cp"][2];
+				$this->getContents($file, function() use($that, &$files) {
+					$files[0][] = $that->getBuffer();
+				}, function() use($that, &$files) {
+					$files[1][] = $that->getBuffer();
+				}, function() use ($files, $dest) {
 
-					foreach ($dirs as $item) {
+					foreach ($files[1] as $item)
+					{
 						if (!file_exists($dest.'/'.$item))
-							mkdir("$dest/$item",0777,true);
+							mkdir("$dest/$item", 0777, true);
 					}
 
-					foreach ($files as $item) {
+					foreach ($files[0] as $item)
+					{
 						if (!file_exists("$dest/$files"))
 							copy($item, $dest.'/'.$item);
 					}
@@ -263,31 +246,44 @@ class Shell implements IShellCommands
 			}
 		}
 		else
-			copy($source, $dest);
+			copy($file, $dest);
+
 		return $this;
 	}
 
 	public function mv($oldfile = null, $newfile)
 	{
-		$oldfile = is_null($oldfile) ? $this->buffer : $oldfile;
+		if (empty($oldfile))
+			throw new \Exception("Missing parameter for mv!");
+
 		if (is_dir($newfile))
 				$newfile .= '/'.basename($oldfile);
+
 		if ($oldfile == $newfile)
 			return $this;
-		if(!rename($oldfile,$newfile))
+
+		if(!rename($oldfile, $newfile))
 			return false;
+
 		return $this;
 	}
 
 	public function mkdir($dir = null, $dest = null, $recursive = null)
 	{
+		if (empty($dir))
+			throw new \Exception("Missing parameter for mkdir!");
+
+		if (empty($dest))
+			$dest = '.';
+
 		$recursive = (is_null($recursive)) ? false : $recursive;
+
 		if ($recursive)
-			mkdir("$dest/$dir",0777,true);
+			mkdir("$dest/$dir", 0777, true);
 		else {
 			if (!is_dir($dir))
 			{
-				if(!mkdir("$dir",0777))
+				if(!mkdir("$dir", 0777))
 					return false;		
 			}
 		}
@@ -296,6 +292,9 @@ class Shell implements IShellCommands
 
 	public function rmdir($dir = null)
 	{
+		if (is_null($dir) || empty($dir))
+			throw new \Exception("Missing parameter for rmdir!");
+
 		if (rmdir($dir))
 			return $this;
 		else
