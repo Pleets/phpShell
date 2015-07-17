@@ -1,6 +1,8 @@
-body { margin: 10px; }
-
-.shell { border: solid 1px rgb(220, 220, 220); height: 400px; overflow: auto; }
-.shell > .header { padding: 3px; background: rgb(60, 60, 60); color: white; }
+.shell { border: solid 1px rgb(220, 220, 220); height: 400px; overflow: auto; margin-top: 10px; position: relative; }
+.shell > .header { padding: 3px; background: rgb(60, 60, 60); color: white; position: absolute; top: 0; left: 0; width: 100%; }
+.shell > .body {
+	margin-top: 20px;
+}
 .shell > .body, .shell > .footer { padding: 3px; }
+.shell > .footer { padding: 0 12px; }
 .shell > .footer  input { padding: 0; width: 98%; border: none; }

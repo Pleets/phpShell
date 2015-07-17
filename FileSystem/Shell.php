@@ -3,11 +3,11 @@
 /*
  * PHP FileSystem Environment - FileSystem tools for PHP
  * http://www.pleets.org
- * Copyright 2014, Pleets Apps
+ * Copyright 2015, Pleets Apps
  * Free to use under the MIT license.
  * http://www.opensource.org/licenses/mit-license.php
  *
- * Date: 2014-10-06
+ * Date: 2015-07-17
  */
 
 namespace Pleets\FileSystem;
@@ -159,25 +159,25 @@ class Shell implements IShellCommands
 
 		if (is_dir($path))
 		{
-			if (!chdir($moveTo))
-				return false;
+			if (chdir($moveTo))
+				return true;
 		}
 
-		return $this;
+		return false;
 	}
 
 	public function touch($file)
 	{
-		if (!file_exists($file)) 
+		if (file_exists($file)) 
 		{
 			if (!$openFile = fopen($file, 'w+'))
 				return false;
-			fwrite($openFile, "");
+			if (fwrite($openFile, ""))
+				return true;
 			fclose($openFile);
 		}
-		else
-			return false;
-		return $this;
+
+		return false;
 	}
 
 	public function rm($file = null, $recursive = null)
