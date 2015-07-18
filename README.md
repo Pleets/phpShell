@@ -1,4 +1,4 @@
-# PHP FileSystem Environment
+# phpShell
 ### FileSystem tools for PHP
 
 PHPFileSystem is an easy script for manage the real filesystem in the server.
