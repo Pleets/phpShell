@@ -43,7 +43,7 @@
 							<div class="input-field col s12">
 								<!-- <i class="material-icons prefix">account_circle</i> -->
 								<input name="command" id="command" type="text" class="validate" autofocus>
-								<label for="icon_prefix">$</label>
+								<label for="icon_prefix" id="prompt">$</label>
 							</div>
 						</div>
 					</form>

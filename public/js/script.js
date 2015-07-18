@@ -12,13 +12,18 @@ $(function(){
 			url: "adapter.php",
 			type: 'post',
 			data: data,
+			dataType: 'json',
+			error: function(a,b,c) {
+				alert(b);
+			},
 			beforeSend: function() {
 				input.attr("readonly", "readonly");
 			},
-			success: function(response) {
-				shell.children(".body").append("<div>$: " + data[0]["value"] + "</div>");
-				shell.children(".body").append("<div>" + response + "</div>");
-				input.val("");
+			success: function(response) 
+			{
+				shell.children(".body").append("<div>$: " + input.val() + "</div>");
+				shell.children(".body").append("<div>" + response["message"] + "</div>");
+				input.val(""); $("#prompt").text(response["path"]+"#");
 				$('.shell')[0].scrollTop = 9999999;
 			},
 			complete: function() {
