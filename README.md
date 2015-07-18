@@ -3,6 +3,14 @@
 
 PHPFileSystem is an easy script for manage the real filesystem in the server.
 
+### Screenshots
+
+Simple and minimalist interface
+
+<p align="center">
+  <img src="http://pleets.org/public/img/php-filesystem-environment.png" alt="Screenshot"/>
+</p>
+
 Installation
 ------------
 
